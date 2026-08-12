@@ -1,5 +1,7 @@
 # FetchWise
 
+**Live demo:** [fetch-wise.streamlit.app](https://fetch-wise.streamlit.app)
+
 A support/FAQ assistant for **Fetchly**, a fictional pet food & supplies
 e-commerce company, built to demonstrate the core building blocks of a
 production support agent: **retrieval-augmented generation, tool-calling,
@@ -157,6 +159,9 @@ copy .env.example .env         # Windows
 # then edit .env and set GROQ_API_KEY
 
 # 4. Build the retrieval index (downloads all-MiniLM-L6-v2 on first run)
+#    Optional: agent.py auto-builds the index on first use if it's missing
+#    (see "Deployment" below), but running this explicitly first lets you
+#    see the sample retrieval checks from step 3 before moving on.
 python src/ingest.py
 
 # 5. Try the agent directly
@@ -191,6 +196,13 @@ fetch-wise/
 ├── requirements.txt
 └── README.md
 ```
+
+## Deployment (Streamlit Community Cloud)
+
+- **Python version:** 3.11.
+- **Main file path:** `app/streamlit_app.py`.
+- **Secrets:** must NOT be left empty — add `GROQ_API_KEY = "your-key"` in the app's Secrets box. `streamlit_app.py` bridges `st.secrets` into `os.environ` at startup so `agent.py`'s normal `os.environ`-based key lookup works unchanged.
+- **FAISS index:** `data/faiss_index/` is gitignored (a rebuildable binary artifact, not source). `FetchWiseAgent.__init__` catches the resulting `FileNotFoundError` from `load_index()` and calls `ingest.build_and_save_index()` automatically, so a fresh deploy builds the index on its first request — a few extra seconds on cold start, nothing to configure.
 
 ## Known limitations
 

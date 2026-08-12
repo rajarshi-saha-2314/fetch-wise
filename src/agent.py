@@ -42,7 +42,7 @@ from groq import Groq
 from sentence_transformers import SentenceTransformer
 
 from guardrails import REFUSAL_MESSAGE, is_off_topic
-from ingest import EMBEDDING_MODEL_NAME, Chunk, load_index, search
+from ingest import EMBEDDING_MODEL_NAME, Chunk, build_and_save_index, load_index, search
 from tools import TOOL_SCHEMAS, check_order_status
 
 load_dotenv()
@@ -105,7 +105,14 @@ class FetchWiseAgent:
             )
         self.client = Groq(api_key=api_key)
         self.embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
-        self.index, self.chunks = load_index()
+        try:
+            self.index, self.chunks = load_index()
+        except FileNotFoundError:
+            # No prebuilt index on disk — e.g. a fresh clone or a fresh
+            # deploy, since data/faiss_index/ is a gitignored, rebuildable
+            # artifact rather than something committed. Build it once now
+            # using the embedding model already loaded above.
+            self.index, self.chunks = build_and_save_index(self.embedding_model)
 
     def _retrieve(self, query: str, k: int = TOP_K) -> list[tuple[Chunk, float]]:
         return search(query, self.embedding_model, self.index, self.chunks, k=k)

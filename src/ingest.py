@@ -207,22 +207,38 @@ SAMPLE_QUERIES = [
 ]
 
 
+def build_and_save_index(model: SentenceTransformer, verbose: bool = True) -> tuple[faiss.Index, list[Chunk]]:
+    """End-to-end build: chunk docs, embed, index, persist to disk.
+
+    Used both by `python src/ingest.py` directly and as an automatic
+    fallback in agent.py's FetchWiseAgent when no prebuilt index is found on
+    disk — e.g. on a fresh clone or a fresh deploy, since data/faiss_index/
+    is a gitignored, rebuildable artifact rather than something committed.
+    """
+    if verbose:
+        print(f"Chunking docs from {DOCS_DIR}...")
+    chunks = build_chunks()
+    if verbose:
+        print(f"  -> {len(chunks)} chunks from {len(set(c.doc_id for c in chunks))} docs")
+        print("Embedding chunks...")
+    embeddings = embed_texts(model, [c.text for c in chunks])
+
+    if verbose:
+        print("Building FAISS index...")
+    index = build_index(embeddings)
+
+    save_index(index, chunks)
+    if verbose:
+        print(f"Saved index to {INDEX_PATH} and metadata to {CHUNKS_PATH}")
+
+    return index, chunks
+
+
 def main() -> None:
     print(f"Loading embedding model '{EMBEDDING_MODEL_NAME}'...")
     model = SentenceTransformer(EMBEDDING_MODEL_NAME)
 
-    print(f"Chunking docs from {DOCS_DIR}...")
-    chunks = build_chunks()
-    print(f"  -> {len(chunks)} chunks from {len(set(c.doc_id for c in chunks))} docs")
-
-    print("Embedding chunks...")
-    embeddings = embed_texts(model, [c.text for c in chunks])
-
-    print("Building FAISS index...")
-    index = build_index(embeddings)
-
-    save_index(index, chunks)
-    print(f"Saved index to {INDEX_PATH} and metadata to {CHUNKS_PATH}")
+    index, chunks = build_and_save_index(model)
 
     print("\n--- Sample retrieval checks ---")
     for query in SAMPLE_QUERIES:
