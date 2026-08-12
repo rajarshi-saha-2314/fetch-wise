@@ -11,6 +11,7 @@ Run from the project root:
     streamlit run app/streamlit_app.py
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -19,6 +20,18 @@ import streamlit as st
 # Make src/ importable when Streamlit runs this file directly.
 SRC_DIR = Path(__file__).resolve().parent.parent / "src"
 sys.path.insert(0, str(SRC_DIR))
+
+# agent.py reads GROQ_API_KEY from os.environ (via a local .env in dev).
+# On Streamlit Community Cloud, the key instead comes from the app's Secrets
+# box as st.secrets — bridge it into os.environ explicitly here rather than
+# relying on Streamlit's version-specific auto-bridging behavior. Wrapped in
+# try/except since st.secrets raises if no secrets.toml exists at all,
+# which is the normal case for local dev (where .env is used instead).
+try:
+    if "GROQ_API_KEY" in st.secrets:
+        os.environ.setdefault("GROQ_API_KEY", st.secrets["GROQ_API_KEY"])
+except Exception:
+    pass
 
 from agent import FetchWiseAgent  # noqa: E402
 
