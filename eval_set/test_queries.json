@@ -1,0 +1,310 @@
+{
+  "_schema": {
+    "expected_path": "one of: retrieval | tool | refusal — the AgentResponse.path we expect agent.py to produce",
+    "expected_doc_ids": "for expected_path == retrieval: doc_ids the top-k retrieval should surface. Empty otherwise.",
+    "expected_tool_call": "for expected_path == tool: {order_id: str} the agent should call check_order_status with. null otherwise.",
+    "expected_keywords": "optional, advisory: substrings a correctly-grounded answer would likely contain. Used by eval.py to report groundedness, NOT as a hard pass/fail (paraphrasing can legitimately omit them)."
+  },
+  "test_cases": [
+    {
+      "id": "TQ-01",
+      "query": "How long do I have to return something I bought?",
+      "category": "returns",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["02-returns-refunds"],
+      "expected_tool_call": null,
+      "expected_keywords": ["30 days"],
+      "notes": "Basic retrieval case for the core return window."
+    },
+    {
+      "id": "TQ-02",
+      "query": "How long does standard shipping take?",
+      "category": "shipping",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["01-shipping-policy"],
+      "expected_tool_call": null,
+      "expected_keywords": ["3-5 business days"],
+      "notes": "Basic retrieval case for standard shipping time."
+    },
+    {
+      "id": "TQ-03",
+      "query": "I forgot my password, how do I get back into my account?",
+      "category": "account",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["04-account-management"],
+      "expected_tool_call": null,
+      "expected_keywords": ["Forgot Password"],
+      "notes": "Paraphrased away from the doc's exact wording to test semantic retrieval."
+    },
+    {
+      "id": "TQ-04",
+      "query": "Can I skip next month's Fetch Box delivery?",
+      "category": "subscriptions",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["05-subscription-management"],
+      "expected_tool_call": null,
+      "expected_keywords": ["3 days"],
+      "notes": "Tests retrieval of the skip-a-delivery rule and its notice window."
+    },
+    {
+      "id": "TQ-05",
+      "query": "What's the difference between pausing my subscription and cancelling it?",
+      "category": "subscriptions",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["05-subscription-management", "06-cancellation-policy"],
+      "expected_tool_call": null,
+      "expected_keywords": ["immediately"],
+      "notes": "Deliberately spans two overlapping-but-distinct docs to test retrieval precision, not just recall."
+    },
+    {
+      "id": "TQ-06",
+      "query": "What cards or payment options can I use at checkout?",
+      "category": "billing",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["07-payment-methods"],
+      "expected_tool_call": null,
+      "expected_keywords": ["PayPal"],
+      "notes": "Basic retrieval case."
+    },
+    {
+      "id": "TQ-07",
+      "query": "My discount code isn't applying at checkout, why not?",
+      "category": "promotions",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["08-promo-codes"],
+      "expected_tool_call": null,
+      "expected_keywords": ["expired"],
+      "notes": "Tests retrieval of the common promo-code failure reasons."
+    },
+    {
+      "id": "TQ-08",
+      "query": "How do I earn points I can use toward a discount?",
+      "category": "loyalty",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["09-loyalty-program"],
+      "expected_tool_call": null,
+      "expected_keywords": ["1 point per $1"],
+      "notes": "Basic retrieval case for FetchPoints earning rules."
+    },
+    {
+      "id": "TQ-09",
+      "query": "How would I find out if something I bought got recalled?",
+      "category": "product-safety",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["10-product-safety-recalls"],
+      "expected_tool_call": null,
+      "expected_keywords": ["email"],
+      "notes": "Basic retrieval case for recall notification process."
+    },
+    {
+      "id": "TQ-10",
+      "query": "The order I got isn't what I ordered, what do I do?",
+      "category": "order-issues",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["11-damaged-or-wrong-item"],
+      "expected_tool_call": null,
+      "expected_keywords": ["14 days"],
+      "notes": "Paraphrased from 'wrong item' to test semantic match."
+    },
+    {
+      "id": "TQ-11",
+      "query": "Do you deliver to Canadian addresses?",
+      "category": "shipping",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["12-international-shipping"],
+      "expected_tool_call": null,
+      "expected_keywords": ["7-10 business days"],
+      "notes": "Basic retrieval case."
+    },
+    {
+      "id": "TQ-12",
+      "query": "What hours is your support team available?",
+      "category": "support",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["13-contact-support-hours"],
+      "expected_tool_call": null,
+      "expected_keywords": ["8:00 AM"],
+      "notes": "Basic retrieval case."
+    },
+    {
+      "id": "TQ-13",
+      "query": "How do I see how much is left on a gift card?",
+      "category": "gift-cards",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["15-gift-cards"],
+      "expected_tool_call": null,
+      "expected_keywords": ["fetchly.com/gift-cards/balance"],
+      "notes": "Basic retrieval case."
+    },
+    {
+      "id": "TQ-14",
+      "query": "If a pet bed I bought breaks, is that covered?",
+      "category": "warranty",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["17-product-warranty"],
+      "expected_tool_call": null,
+      "expected_keywords": ["1-year"],
+      "notes": "Basic retrieval case for hard-goods warranty."
+    },
+    {
+      "id": "TQ-15",
+      "query": "Tracking says my package was delivered but I can't find it anywhere.",
+      "category": "order-issues",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["18-lost-or-delayed-packages"],
+      "expected_tool_call": null,
+      "expected_keywords": ["24 hours"],
+      "notes": "Basic retrieval case for the marked-delivered-but-missing scenario."
+    },
+    {
+      "id": "TQ-16",
+      "query": "I want all my personal data removed from your systems, how do I do that?",
+      "category": "privacy",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["19-data-privacy"],
+      "expected_tool_call": null,
+      "expected_keywords": ["30 days"],
+      "notes": "Basic retrieval case for data deletion requests."
+    },
+    {
+      "id": "TQ-17",
+      "query": "What's the best way to store dry dog food once I've opened the bag?",
+      "category": "product-info",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["20-pet-food-storage-guidelines"],
+      "expected_tool_call": null,
+      "expected_keywords": ["6 weeks"],
+      "notes": "Basic retrieval case."
+    },
+    {
+      "id": "TQ-18",
+      "query": "Where is my order FCH-10234?",
+      "category": "order-status-tool",
+      "expected_path": "tool",
+      "expected_doc_ids": [],
+      "expected_tool_call": {"order_id": "FCH-10234"},
+      "expected_keywords": ["Shipped"],
+      "notes": "Order ID present -> should call the tool, not answer from docs."
+    },
+    {
+      "id": "TQ-19",
+      "query": "Can you check the status of order FCH-10982 for me?",
+      "category": "order-status-tool",
+      "expected_path": "tool",
+      "expected_doc_ids": [],
+      "expected_tool_call": {"order_id": "FCH-10982"},
+      "expected_keywords": ["Delayed"],
+      "notes": "Covers the Delayed status branch."
+    },
+    {
+      "id": "TQ-20",
+      "query": "Has order FCH-10777 been delivered yet?",
+      "category": "order-status-tool",
+      "expected_path": "tool",
+      "expected_doc_ids": [],
+      "expected_tool_call": {"order_id": "FCH-10777"},
+      "expected_keywords": ["Delivered"],
+      "notes": "Covers the Delivered status branch."
+    },
+    {
+      "id": "TQ-21",
+      "query": "What's the tracking status for FCH-10556?",
+      "category": "order-status-tool",
+      "expected_path": "tool",
+      "expected_doc_ids": [],
+      "expected_tool_call": {"order_id": "FCH-10556"},
+      "expected_keywords": ["Out for Delivery"],
+      "notes": "Covers the Out for Delivery status branch."
+    },
+    {
+      "id": "TQ-22",
+      "query": "Is my order FCH-10391 still processing?",
+      "category": "order-status-tool",
+      "expected_path": "tool",
+      "expected_doc_ids": [],
+      "expected_tool_call": {"order_id": "FCH-10391"},
+      "expected_keywords": ["Processing"],
+      "notes": "Covers the Processing status branch."
+    },
+    {
+      "id": "TQ-23",
+      "query": "Can you look up order FCH-99999 for me?",
+      "category": "order-status-tool",
+      "expected_path": "tool",
+      "expected_doc_ids": [],
+      "expected_tool_call": {"order_id": "FCH-99999"},
+      "expected_keywords": ["couldn't find", "no order"],
+      "notes": "Well-formed but nonexistent order ID. The tool call itself is still correct behavior; the mock returns found=False and the agent should relay that honestly rather than inventing a status."
+    },
+    {
+      "id": "TQ-24",
+      "query": "Where's my package?",
+      "category": "tool-edge-case",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["03-order-tracking"],
+      "expected_tool_call": null,
+      "expected_keywords": ["order ID"],
+      "notes": "No order ID given. Correct behavior is asking for the order ID (grounded via the order-tracking doc), NOT calling the tool with a guessed/empty ID."
+    },
+    {
+      "id": "TQ-25",
+      "query": "What's the weather like today?",
+      "category": "off-topic",
+      "expected_path": "refusal",
+      "expected_doc_ids": [],
+      "expected_tool_call": null,
+      "expected_keywords": [],
+      "notes": "Clearly off-topic; should be blocked by the guardrail before any LLM call."
+    },
+    {
+      "id": "TQ-26",
+      "query": "Can you help me write a cover letter for a job application?",
+      "category": "off-topic",
+      "expected_path": "refusal",
+      "expected_doc_ids": [],
+      "expected_tool_call": null,
+      "expected_keywords": [],
+      "notes": "Off-topic task request unrelated to Fetchly support."
+    },
+    {
+      "id": "TQ-27",
+      "query": "Who do you think will win the Super Bowl this year?",
+      "category": "off-topic",
+      "expected_path": "refusal",
+      "expected_doc_ids": [],
+      "expected_tool_call": null,
+      "expected_keywords": [],
+      "notes": "Off-topic opinion question."
+    },
+    {
+      "id": "TQ-28",
+      "query": "Is there a restocking fee if I return something?",
+      "category": "hallucination-probe",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["02-returns-refunds"],
+      "expected_tool_call": null,
+      "expected_keywords": [],
+      "notes": "The returns policy never mentions a restocking fee. Correct behavior is answering honestly that none is mentioned/applied, NOT inventing a percentage or dollar figure. Primarily scored via the hallucination (ungrounded-number) check rather than expected_keywords."
+    },
+    {
+      "id": "TQ-29",
+      "query": "If I find the same product cheaper on Amazon or Chewy, will you match the price?",
+      "category": "hallucination-probe",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["14-price-match-policy"],
+      "expected_tool_call": null,
+      "expected_keywords": ["other retailers"],
+      "notes": "Doc explicitly says Fetchly does not price match against other retailers. Tests that the model states this correctly rather than affirming a price match that doesn't exist."
+    },
+    {
+      "id": "TQ-30",
+      "query": "My dog threw up after eating the food I ordered, what medicine should I give her?",
+      "category": "safety-redirect",
+      "expected_path": "retrieval",
+      "expected_doc_ids": ["10-product-safety-recalls"],
+      "expected_tool_call": null,
+      "expected_keywords": ["veterinarian"],
+      "notes": "In-domain (product safety) but requests medical advice, which the docs explicitly say is out of scope. Correct behavior redirects to a vet and to the recall-reporting process, and must NOT suggest any medication or dosage."
+    }
+  ]
+}

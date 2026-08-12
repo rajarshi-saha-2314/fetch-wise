@@ -1,0 +1,16 @@
+# --- Retrieval (embeddings + vector index) ---
+sentence-transformers==3.3.1
+faiss-cpu==1.9.0.post1
+numpy==2.2.1
+
+# --- App / UI ---
+streamlit==1.41.1
+
+# --- Utilities ---
+python-dotenv==1.0.1
+rich==13.9.4
+
+# --- LLM provider for agent.py ---
+# Groq API (fast inference), using openai/gpt-oss-120b for the agent's
+# decide/answer step. OpenAI-compatible tool-calling.
+groq==1.6.0

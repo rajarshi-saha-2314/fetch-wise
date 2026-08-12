@@ -1,0 +1,11 @@
+venv/
+__pycache__/
+*.pyc
+.env
+
+# generated artifacts (rebuilt by ingest.py / eval.py, don't need to be in git)
+data/faiss_index/
+results/eval_report.json
+
+# local model cache if downloaded into the repo
+.cache/
